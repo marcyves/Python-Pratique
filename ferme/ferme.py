@@ -5,7 +5,7 @@
 Petit jeu de simulation de ferme
 Garanti sans OGM
 
-(c) Marc Augier 2018
+(c) Marc Augier 2016
 m.augier@me.com
 
 Règles du jeu:
@@ -33,14 +33,33 @@ taxe = 1000
 an = 2016
 
 def affiche_statut_ferme(an, terrain,stock):
-    print ("En {}, notre ferme possède {} hectares et {} tonnes de stock de blé.".format(an,terrain, stock))
+    print("==>")
+    print ("\tEn {}, notre ferme possède {} hectares et {} tonnes de stock de blé.\n".format(an,terrain, stock))
 
 def jeu_du_fermier():
+    global semence, stock, terrain
+
     reponse = ""
     while(reponse.upper() not in ['O', 'N', 'OUI', 'NON']):
          reponse = input("Est-ce que vous voulez continuez à jouer ? Oui/Non => ")
     if reponse.upper() == 'O':
         decision = {'jeu':True}
+
+        plante = -1
+        while(plante < 0 or plante > stock/semence or plante > terrain):
+            plante =  int(input("Combien d'hectares à semer ? ==> "))
+            # On vérifie que l'on ne plante pas plus que l'on a en stock
+            if (plante*semence > stock):
+                print("*** Vous n'avez pas assez de stock")
+                # option où le jeu force la valeur maximum
+                #plante = stock/semence
+            # et que notre terrain peu supporter
+            if (plante > terrain):
+                print ("*** Vous n'avez pas assez de terrain")
+                # option où le jeu force la valeur maximum
+                # plante = terrain
+        decision['plante'] = plante
+
 
     else:
         decision = {'jeu':False}
@@ -49,18 +68,35 @@ def jeu_du_fermier():
 
 def execute_simulation(decision):
     global an, terrain, stock
+    global semence, stock, terrain, taxe
+
     if decision['jeu']:
+        # Opérations de l'année
         print("ça joue")
+        # Maintenant on plante et diminue le stock en conséquence
+        stock = stock - decision['plante']*semence
+        print("\tVous avez planté {} hectares".format(decision['plante']))
+        # Comme le temps passe vite...
         an += 1
+        # Moisson et calcul du stock actualisé
+        recolte = decision['plante']*productivite
+        stock = stock + recolte
+        print("\tQui ont produit {} tonnes de blé".format(recolte))
+        # On paye les impots, si on peut
+        if (stock < taxe):
+              print ("Vous etes en faillite")
+              stock = 0
+        else:
+            stock = stock - taxe
+
     return
 
 def verifie_jeu_en_cours(decision):
     return decision['jeu']
 
-
-print("===============")
+print("=================")
 print("=== Ferme 2.0 ===")
-print("===============")
+print("=================")
 
 jeu = True
 
